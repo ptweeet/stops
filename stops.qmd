@@ -1,0 +1,17 @@
+---
+title: "Stops"
+author: "Alec Rogers"
+format: html
+execute: 
+  echo: false
+---
+
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(primer.data)
+```
+
+Race is widely discussed factor in policing outcomes. In this analysis we seek to explore how race of the individual stopped relate to arrest rates in traffic stops, using data from a study of New Orleans traffic stops.
