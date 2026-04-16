@@ -16,9 +16,11 @@ library(tidymodels)
 library(broom)
 library(easystats)
 library(gt)
+library(marginaleffects)
+library(ggplot2)
 ```
 
-Race is widely discussed factor in policing outcomes. In this analysis we seek to explore how race of the individual stopped relate to arrest rates in traffic stops, using data from a study of New Orleans traffic stops. Arrests in the study may not reflect the totality of police actions that we care about such as summonses and detainment. We model arrest rate as a linear function of sex of the person stopped and the interaction of the race of the person stopped and zone where the traffic stop took place in New Orleans.
+Race is widely discussed factor in policing outcomes. In this analysis we seek to explore how race of the individual stopped relate to arrest rates in traffic stops, using data from a study of New Orleans traffic stops. Arrests in the study may not reflect the totality of police actions that we care about such as summonses and detainment. We model arrest rate as a linear function of sex of the person stopped and the interaction of the race of the person stopped and zone where the traffic stop took place in New Orleans. We found that blacks are arrested at higher rates than whites at traffic stops.
 
 
 $$
@@ -70,4 +72,39 @@ estimate = "Estimate",
 conf.low = "Lower CI",
 conf.high = "Upper CI"
 )
+```
+
+
+
+```{r}
+#| cache: true
+#| eval: false
+
+plot_predictions(fit_stops, by="sex")
+plot_predictions(fit_stops, condition="sex")
+plot_predictions(fit_stops, condition=c("sex", "race"))
+```
+
+```{r}
+dat <- plot_predictions(
+  fit_stops,
+  condition = c("sex", "race"),
+  draw = FALSE
+)
+
+ggplot(dat, aes(x = race, y = estimate, color = sex)) +
+  geom_point(position = position_dodge(width = 0.3), size = 3) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    position = position_dodge(width = 0.3),
+    width = 0.2
+  ) +
+  labs(
+    title = "Predicted Probability of Being Arrested",
+    subtitle = "Differences Across Sex and Race",
+    x = "Race",
+    y = "Predicted Probability",
+    color = "Sex"
+  ) +
+  theme_minimal(base_size = 14)
 ```
