@@ -14,9 +14,11 @@ library(tidyverse)
 library(primer.data)
 library(tidymodels)
 library(broom)
+library(easystats)
+library(gt)
 ```
 
-Race is widely discussed factor in policing outcomes. In this analysis we seek to explore how race of the individual stopped relate to arrest rates in traffic stops, using data from a study of New Orleans traffic stops. Arrests in the study may not reflect the totality of police actions that we care about such as summonses and detainment.
+Race is widely discussed factor in policing outcomes. In this analysis we seek to explore how race of the individual stopped relate to arrest rates in traffic stops, using data from a study of New Orleans traffic stops. Arrests in the study may not reflect the totality of police actions that we care about such as summonses and detainment. We model arrest rate as a linear function of sex of the person stopped and the interaction of the race of the person stopped and zone where the traffic stop took place in New Orleans.
 
 
 $$
@@ -25,3 +27,47 @@ $$
 
 with $( Y \sim \text{Bernoulli}(\rho) )$ where $( \rho = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_n X_n)}} )$
 
+```{r}
+#| cache: true
+
+x <- stops |>
+  filter(race %in% c("black", "white")) |>
+  mutate(race = str_to_title(race), 
+         sex = str_to_title(sex))
+
+fit_stops <- linear_reg() |>
+    set_engine("lm") |>
+    fit(arrested ~ sex + race*zone, data = x)
+
+
+```
+
+$$
+\widehat{\text{arrested}} = 0.177 
++ 0.0614 \cdot \text{sex}_{\text{Male}} 
+- 0.0445 \cdot \text{race}_{\text{White}} 
++ 0.0146 \cdot \text{zone}_{\text{B}} 
++ 0.00610 \cdot \text{zone}_{\text{C}} 
++ 0.0781 \cdot \text{zone}_{\text{D}} 
++ 0.00190 \cdot \text{zone}_{\text{E}} 
+- 0.00271 \cdot \text{zone}_{\text{F}} 
++ 0.0309 \cdot \text{zone}_{\text{G}} 
++ 0.0757 \cdot \text{zone}_{\text{H}} 
++ \text{(interaction terms for race and zone)}
+$$
+
+```{r}
+tidy(fit_stops, conf.int = TRUE) |>
+select(term, estimate, conf.low, conf.high) |>
+gt() |>
+fmt_number(
+columns = c(estimate, conf.low, conf.high),
+decimals = 3
+) |>
+cols_label(
+term = "Term",
+estimate = "Estimate",
+conf.low = "Lower CI",
+conf.high = "Upper CI"
+)
+```
